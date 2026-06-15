@@ -69,7 +69,7 @@ Os 23 padrões GOF são divididos em três grandes grupos:
 
 ## Exemplos de código em Python
 
-A seguir, cada padrão é apresentado com um exemplo em Python, explicando o propósito e a aplicação.
+A seguir, cada padrão é apresentado com um exemplo em Python, explicando o propósito e a aplicação. Para cada padrão há também um trecho que mostra a violação comum e a correção usando o padrão.
 
 ---
 
@@ -79,6 +79,17 @@ A seguir, cada padrão é apresentado com um exemplo em Python, explicando o pro
 
 **Quando usar:** Quando uma aplicação precisa ser independente de como seus objetos são criados e deseja garantir que produtos relacionados sejam compatíveis.
 
+**Exemplo que viola o padrão:**
+```python
+sofa = ModernSofa()
+chair = VictorianChair()
+print(sofa.style())
+print(chair.style())
+```
+
+**Problema:** O cliente conhece as classes concretas e pode montar famílias incompatíveis. A lógica de criação fica espalhada e aumenta o acoplamento.
+
+**Solução usando Abstract Factory:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -142,7 +153,6 @@ def client_code(factory: FurnitureFactory) -> None:
 if __name__ == "__main__":
     print("Usando móveis modernos:")
     client_code(ModernFurnitureFactory())
-
     print("\nUsando móveis vitorianos:")
     client_code(VictorianFurnitureFactory())
 ```
@@ -155,6 +165,17 @@ if __name__ == "__main__":
 
 **Quando usar:** Quando a construção de um objeto deve permitir variações independentes da representação interna.
 
+**Exemplo que viola o padrão:**
+```python
+pizza = Pizza()
+pizza.add("massa fina")
+pizza.add("molho picante")
+pizza.add("pepperoni")
+```
+
+**Problema:** O cliente deve conhecer cada etapa da montagem, o que dificulta a reutilização e gera código de montagem duplicado.
+
+**Solução usando Builder:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -230,11 +251,8 @@ class Cook:
 
 
 if __name__ == "__main__":
-    margherita = Cook(MargheritaBuilder()).make_pizza()
-    spicy = Cook(SpicyBuilder()).make_pizza()
-
-    print(margherita)
-    print(spicy)
+    print(Cook(MargheritaBuilder()).make_pizza())
+    print(Cook(SpicyBuilder()).make_pizza())
 ```
 
 ---
@@ -245,6 +263,17 @@ if __name__ == "__main__":
 
 **Quando usar:** Quando uma classe não pode antecipar a classe de objetos que precisa criar.
 
+**Exemplo que viola o padrão:**
+```python
+if document_type == "pdf":
+    document = PDFDocument()
+elif document_type == "word":
+    document = WordDocument()
+```
+
+**Problema:** A lógica de criação permanece no cliente. Toda nova variante exige alteração no cliente, violando o princípio aberto/fechado.
+
+**Solução usando Factory Method:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -280,10 +309,8 @@ class WordApplication(Application):
 
 
 if __name__ == "__main__":
-    pdf_app = PDFApplication()
-    word_app = WordApplication()
-    print(pdf_app.new_document())
-    print(word_app.new_document())
+    print(PDFApplication().new_document())
+    print(WordApplication().new_document())
 ```
 
 ---
@@ -294,6 +321,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Quando a criação de um objeto é cara ou complexa, e é mais simples copiar um exemplo existente.
 
+**Exemplo que viola o padrão:**
+```python
+shape = Shape("círculo", {"raio": 5, "cor": "azul"})
+new_shape = Shape(shape.name, shape.properties.copy())
+```
+
+**Problema:** O cliente precisa conhecer os detalhes do objeto e fazer cópias manuais, o que é propenso a erros.
+
+**Solução usando Prototype:**
 ```python
 import copy
 
@@ -305,7 +341,7 @@ class Shape:
     def clone(self):
         return copy.deepcopy(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Shape({self.name}, {self.properties})"
 
 
@@ -313,7 +349,6 @@ if __name__ == "__main__":
     circle = Shape("círculo", {"raio": 5, "cor": "azul"})
     another_circle = circle.clone()
     another_circle.properties["cor"] = "vermelho"
-
     print(circle)
     print(another_circle)
 ```
@@ -326,6 +361,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para objetos que representam recursos únicos do sistema, como configuração ou conexão de banco de dados.
 
+**Exemplo que viola o padrão:**
+```python
+config1 = Configuration()
+config2 = Configuration()
+```
+
+**Problema:** Sem controle de criação, múltiplas instâncias podem existir, gerando estados inconsistentes para um recurso que deveria ser único.
+
+**Solução usando Singleton:**
 ```python
 class SingletonMeta(type):
     _instances = {}
@@ -356,6 +400,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para permitir que classes incompatíveis trabalhem juntas.
 
+**Exemplo que viola o padrão:**
+```python
+socket = EuropeanSocket()
+result = AmericanPlug().connect()
+```
+
+**Problema:** O cliente não tem uma forma única de usar objetos incompatíveis; a adaptação é feita no cliente e o código se torna frágil.
+
+**Solução usando Adapter:**
 ```python
 class EuropeanSocket:
     def connect(self) -> str:
@@ -387,6 +440,18 @@ if __name__ == "__main__":
 
 **Quando usar:** Quando a abstração e a implementação devem ser estendidas separadamente.
 
+**Exemplo que viola o padrão:**
+```python
+class VectorCircle:
+    pass
+
+class RasterCircle:
+    pass
+```
+
+**Problema:** Cada combinação de forma e renderização gera uma nova classe, resultando em explosão combinatorial.
+
+**Solução usando Bridge:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -421,10 +486,8 @@ class Circle(Shape):
 
 
 if __name__ == "__main__":
-    circle = Circle(VectorRenderer(), 5)
-    print(circle.draw())
-    circle = Circle(RasterRenderer(), 5)
-    print(circle.draw())
+    print(Circle(VectorRenderer(), 5).draw())
+    print(Circle(RasterRenderer(), 5).draw())
 ```
 
 ---
@@ -435,6 +498,18 @@ if __name__ == "__main__":
 
 **Quando usar:** Quando clientes devem tratar objetos individuais e composições de forma uniforme.
 
+**Exemplo que viola o padrão:**
+```python
+if node.is_file():
+    print(node.name)
+else:
+    for child in node.children:
+        #... processa subnós separadamente
+```
+
+**Problema:** O cliente precisa distinguir entre folha e composição, o que torna o código menos flexível e mais difícil de estender.
+
+**Solução usando Composite:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -467,11 +542,9 @@ class Directory(FileSystemComponent):
 if __name__ == "__main__":
     root = Directory("root")
     root.add(File("arquivo1.txt"))
-
     sub = Directory("subdir")
     sub.add(File("arquivo2.txt"))
     root.add(sub)
-
     root.display()
 ```
 
@@ -483,6 +556,19 @@ if __name__ == "__main__":
 
 **Quando usar:** Para estender comportamentos em tempo de execução sem modificar classes existentes.
 
+**Exemplo que viola o padrão:**
+```python
+class Notifier:
+    def send_email(self, message):
+        pass
+
+    def send_sms(self, message):
+        pass
+```
+
+**Problema:** A classe cresce com funcionalidades e o cliente precisa escolher entre muitos métodos; isso aumenta o acoplamento.
+
+**Solução usando Decorator:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -526,6 +612,17 @@ if __name__ == "__main__":
 
 **Quando usar:** Para simplificar a utilização de um subsistema complexo.
 
+**Exemplo que viola o padrão:**
+```python
+cpu.freeze()
+memory.load(0, hard_drive.read(0, 1024))
+cpu.jump(0)
+cpu.execute()
+```
+
+**Problema:** O cliente precisa conhecer vários objetos do subsistema e sua ordem de invocação, criando acoplamento desnecessário.
+
+**Solução usando Facade:**
 ```python
 class CPU:
     def freeze(self) -> str:
@@ -535,7 +632,7 @@ class CPU:
         return f"Salto para {position}"
 
     def execute(self) -> str:
-        return "Executando" 
+        return "Executando"
 
 class Memory:
     def load(self, position: int, data: str) -> str:
@@ -559,8 +656,7 @@ class ComputerFacade:
 
 
 if __name__ == "__main__":
-    computer = ComputerFacade()
-    computer.start()
+    ComputerFacade().start()
 ```
 
 ---
@@ -571,6 +667,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para suportar milhões de objetos leves que compartilham estado comum.
 
+**Exemplo que viola o padrão:**
+```python
+pine1 = TreeType("Pinheiro", "verde", "áspero")
+pine2 = TreeType("Pinheiro", "verde", "áspero")
+```
+
+**Problema:** Objetos idênticos são criados repetidamente, desperdiçando memória.
+
+**Solução usando Flyweight:**
 ```python
 class TreeType:
     def __init__(self, name: str, color: str, texture: str):
@@ -604,9 +709,7 @@ class Tree:
 if __name__ == "__main__":
     pine = TreeFactory.get_tree_type("Pinheiro", "verde", "áspero")
     oak = TreeFactory.get_tree_type("Carvalho", "verde", "liso")
-
-    forest = [Tree(1, 2, pine), Tree(3, 4, pine), Tree(5, 6, oak)]
-    for tree in forest:
+    for tree in [Tree(1, 2, pine), Tree(3, 4, pine), Tree(5, 6, oak)]:
         print(tree.draw())
 ```
 
@@ -618,6 +721,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para adicionar controle, proteção ou otimização ao acesso a um objeto.
 
+**Exemplo que viola o padrão:**
+```python
+image = RealImage("foto.jpg")
+image.display()
+```
+
+**Problema:** O cliente sempre carrega o objeto pesado, mesmo quando não precisa realmente usá-lo.
+
+**Solução usando Proxy:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -662,6 +774,19 @@ if __name__ == "__main__":
 
 **Quando usar:** Para evitar acoplamento entre remetente e receptor, permitindo que múltiplos objetos possam tratar a solicitação.
 
+**Exemplo que viola o padrão:**
+```python
+if request < 10:
+    handle_request_1(request)
+elif request < 20:
+    handle_request_2(request)
+else:
+    handle_default(request)
+```
+
+**Problema:** A lógica de roteamento fica no cliente; o código não escala quando novos handlers são adicionados.
+
+**Solução usando Chain of Responsibility:**
 ```python
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -693,9 +818,8 @@ class ConcreteHandler2(Handler):
 
 if __name__ == "__main__":
     handler = ConcreteHandler1(ConcreteHandler2())
-    for value in [5, 15, 25]:
-        result = handler.handle(value)
-        print(result or "Nenhum handler processou")
+    for request in [5, 15, 25]:
+        print(handler.handle(request) or "Nenhum handler processou")
 ```
 
 ---
@@ -706,6 +830,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para desacoplar emissor e receptor e permitir histórico de ações.
 
+**Exemplo que viola o padrão:**
+```python
+light.on()
+light.off()
+```
+
+**Problema:** O cliente chama métodos diretamente no receptor, o que impede armazenar, desfazer ou reexecutar comandos facilmente.
+
+**Solução usando Command:**
 ```python
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -746,10 +879,8 @@ class RemoteControl:
 
 if __name__ == "__main__":
     light = Light()
-    remote = RemoteControl(LightOnCommand(light))
-    remote.press()
-    remote = RemoteControl(LightOffCommand(light))
-    remote.press()
+    RemoteControl(LightOnCommand(light)).press()
+    RemoteControl(LightOffCommand(light)).press()
 ```
 
 ---
@@ -760,6 +891,17 @@ if __name__ == "__main__":
 
 **Quando usar:** Para implementar linguagens de domínio específico simples.
 
+**Exemplo que viola o padrão:**
+```python
+if expression == "A or B":
+    return context["A"] or context["B"]
+elif expression == "A and B":
+    return context["A"] and context["B"]
+```
+
+**Problema:** Incluir novas expressões exige modificar o código do cliente e aumenta a complexidade.
+
+**Solução usando Interpreter:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -793,9 +935,12 @@ class AndExpression(Expression):
 
 
 if __name__ == "__main__":
-    expression = AndExpression(TerminalExpression("A"), OrExpression(TerminalExpression("B"), TerminalExpression("C")))
+    expr = AndExpression(
+        TerminalExpression("A"),
+        OrExpression(TerminalExpression("B"), TerminalExpression("C"))
+    )
     context = {"A": True, "B": False, "C": True}
-    print(expression.interpret(context))
+    print(expr.interpret(context))
 ```
 
 ---
@@ -806,6 +951,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para iterar coleções usando uma interface uniforme.
 
+**Exemplo que viola o padrão:**
+```python
+for i in range(len(items)):
+    print(items[i])
+```
+
+**Problema:** O cliente depende da estrutura interna da coleção e precisa gerenciar índices.
+
+**Solução usando Iterator:**
 ```python
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -860,6 +1014,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para reduzir acoplamento entre objetos que se comunicam frequentemente.
 
+**Exemplo que viola o padrão:**
+```python
+component_a.do_b()
+component_b.do_a()
+```
+
+**Problema:** Componentes conhecem diretamente outros componentes, criando acoplamento rígido.
+
+**Solução usando Mediator:**
 ```python
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -921,6 +1084,14 @@ if __name__ == "__main__":
 
 **Quando usar:** Para implementar desfazer/redo em aplicações.
 
+**Exemplo que viola o padrão:**
+```python
+history.append(originator.state)
+```
+
+**Problema:** O cliente acessa diretamente o estado interno, o que quebra encapsulamento e torna o sistema frágil.
+
+**Solução usando Memento:**
 ```python
 from __future__ import annotations
 
@@ -986,6 +1157,15 @@ if __name__ == "__main__":
 
 **Quando usar:** Para implementar eventos e atualizações automáticas entre objetos.
 
+**Exemplo que viola o padrão:**
+```python
+observer1.update(message)
+observer2.update(message)
+```
+
+**Problema:** O remetente precisa conhecer todos os observadores e chamar cada um manualmente.
+
+**Solução usando Observer:**
 ```python
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -1023,11 +1203,8 @@ class ConcreteSubject(Subject):
 
 if __name__ == "__main__":
     subject = ConcreteSubject()
-    observer1 = ConcreteObserver("Observador 1")
-    observer2 = ConcreteObserver("Observador 2")
-
-    subject.attach(observer1)
-    subject.attach(observer2)
+    subject.attach(ConcreteObserver("Observador 1"))
+    subject.attach(ConcreteObserver("Observador 2"))
     subject.change_state("Novo evento disponível")
 ```
 
@@ -1039,6 +1216,17 @@ if __name__ == "__main__":
 
 **Quando usar:** Quando um objeto deve mudar de comportamento sem usar condicionais complexos.
 
+**Exemplo que viola o padrão:**
+```python
+if self.state == "A":
+    self.do_a()
+elif self.state == "B":
+    self.do_b()
+```
+
+**Problema:** O objeto precisa manter condicionais de estado em várias partes do código, tornando a manutenção difícil.
+
+**Solução usando State:**
 ```python
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -1083,6 +1271,17 @@ if __name__ == "__main__":
 
 **Quando usar:** Para variar o algoritmo usado por um objeto sem modificar seu código.
 
+**Exemplo que viola o padrão:**
+```python
+if strategy_type == "sum":
+    result = sum(data)
+elif strategy_type == "max":
+    result = max(data)
+```
+
+**Problema:** O contexto escolhe explicitamente o algoritmo, dificultando a adição de novas estratégias.
+
+**Solução usando Strategy:**
 ```python
 from __future__ import annotations
 from abc import ABC, abstractmethod
@@ -1126,6 +1325,24 @@ if __name__ == "__main__":
 
 **Quando usar:** Para levar subclasses a reutilizar partes de um algoritmo sem alterar sua estrutura.
 
+**Exemplo que viola o padrão:**
+```python
+class CSVProcessor:
+    def process(self):
+        self.read_csv()
+        self.process_csv()
+        self.save()
+
+class JSONProcessor:
+    def process(self):
+        self.read_json()
+        self.process_json()
+        self.save()
+```
+
+**Problema:** A lógica de controle do algoritmo é duplicada em cada subclasse.
+
+**Solução usando Template Method:**
 ```python
 from abc import ABC, abstractmethod
 
@@ -1174,51 +1391,14 @@ if __name__ == "__main__":
 
 **Quando usar:** Quando novas operações devem ser adicionadas a uma estrutura de objetos sem modificar esses objetos.
 
+**Exemplo que viola o padrão:**
 ```python
-from __future__ import annotations
-from abc import ABC, abstractmethod
-
-class Visitor(ABC):
-    @abstractmethod
-    def visit_element_a(self, element: "ElementA") -> None:
-        pass
-
-    @abstractmethod
-    def visit_element_b(self, element: "ElementB") -> None:
-        pass
-
-class Element(ABC):
-    @abstractmethod
-    def accept(self, visitor: Visitor) -> None:
-        pass
-
-class ElementA(Element):
-    def accept(self, visitor: Visitor) -> None:
-        visitor.visit_element_a(self)
-
-class ElementB(Element):
-    def accept(self, visitor: Visitor) -> None:
-        visitor.visit_element_b(self)
-
-class ConcreteVisitor(Visitor):
-    def visit_element_a(self, element: ElementA) -> None:
-        print("Visitando ElementA")
-
-    def visit_element_b(self, element: ElementB) -> None:
-        print("Visitando ElementB")
-
-
-if __name__ == "__main__":
-    elements = [ElementA(), ElementB()]
-    visitor = ConcreteVisitor()
-    for element in elements:
-        element.accept(visitor)
+if isinstance(element, ElementA):
+    process_a(element)
+elif isinstance(element, ElementB):
+    process_b(element)
 ```
 
----
+**Problema:** O cliente precisa saber o tipo concreto do elemento, tornando o código frágil e difícil de estender.
 
-## Conclusão
-
-Os padrões GOF trazem uma base sólida para arquitetar sistemas orientados a objetos. Eles não são regras rígidas, mas boas práticas que ajudam a tornar o código mais organizado, reutilizável e mais fácil de evoluir.
-
-A melhor forma de aprender é aplicar cada padrão em pequenos exemplos e verificar quando o padrão reduz complexidade sem introduzir overhead desnecessário.
+**Solução usando Visitor:**
