@@ -1402,3 +1402,82 @@ elif isinstance(element, ElementB):
 **Problema:** O cliente precisa saber o tipo concreto do elemento, tornando o código frágil e difícil de estender.
 
 **Solução usando Visitor:**
+```python
+from __future__ import annotations
+from abc import ABC, abstractmethod
+
+class Visitor(ABC):
+    @abstractmethod
+    def visit_book(self, book: "Book") -> None:
+        pass
+
+    @abstractmethod
+    def visit_dvd(self, dvd: "DVD") -> None:
+        pass
+
+class Element(ABC):
+    @abstractmethod
+    def accept(self, visitor: Visitor) -> None:
+        pass
+
+class Book(Element):
+    def __init__(self, title: str, price: float) -> None:
+        self.title = title
+        self.price = price
+
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_book(self)
+
+class DVD(Element):
+    def __init__(self, title: str, price: float) -> None:
+        self.title = title
+        self.price = price
+
+    def accept(self, visitor: Visitor) -> None:
+        visitor.visit_dvd(self)
+
+class PriceVisitor(Visitor):
+    def __init__(self) -> None:
+        self.total = 0.0
+
+    def visit_book(self, book: Book) -> None:
+        # Apply possible book discount
+        self.total += book.price * 0.9
+
+    def visit_dvd(self, dvd: DVD) -> None:
+        # DVDs have no discount
+        self.total += dvd.price
+
+class PrintVisitor(Visitor):
+    def visit_book(self, book: Book) -> None:
+        print(f"Livro: {book.title} - R${book.price:.2f}")
+
+    def visit_dvd(self, dvd: DVD) -> None:
+        print(f"DVD: {dvd.title} - R${dvd.price:.2f}")
+
+
+if __name__ == "__main__":
+    items: list[Element] = [Book("Clean Code", 50.0), DVD("Documentary", 30.0), Book("Design Patterns", 70.0)]
+
+    # Usando PrintVisitor para exibir itens
+    printer = PrintVisitor()
+    for item in items:
+        item.accept(printer)
+
+    # Usando PriceVisitor para calcular total
+    calculator = PriceVisitor()
+    for item in items:
+        item.accept(calculator)
+    print(f"Total com descontos: R${calculator.total:.2f}")
+```
+
+Este exemplo mostra como novas operações (`PriceVisitor`, `PrintVisitor`) podem ser adicionadas sem modificar as classes `Book` e `DVD` — basta implementar um novo `Visitor`.
+
+---
+
+## Conclusão
+
+Os padrões GOF trazem uma base sólida para arquitetar sistemas orientados a objetos. Eles não são regras rígidas, mas boas práticas que ajudam a tornar o código mais organizado, reutilizável e mais fácil de evoluir.
+
+A melhor forma de aprender é aplicar cada padrão em pequenos exemplos e verificar quando o padrão reduz complexidade sem introduzir overhead desnecessário.
+
